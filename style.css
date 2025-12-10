@@ -55,6 +55,7 @@ button {
     border: 1px solid #ccc;
     background-color: #f0f0f0;
     border-radius: 4px;
+    transition: background-color 0.2s;
 }
 
 button:hover {
@@ -98,15 +99,14 @@ button:hover {
 
 /* ====== 过期任务高亮 ====== */
 .task-item.overdue {
-    background-color: #ffeeee; /* 浅红色背景 */
-    border-left-color: #d32f2f !important; /* 深红色边框 */
-    color: #a00; /* 红色字体 */
+    background-color: #ffeeee; 
+    border-left-color: #d32f2f !important; 
+    color: #a00; 
 }
 
 .task-item.overdue small {
     color: #a00; 
 }
-
 
 /* 完成任务样式 */
 .completed {
@@ -127,13 +127,42 @@ button:hover {
     margin-bottom: 10px;
 }
 
+/* ====== 日历导航样式 ====== */
+.calendar-nav-container {
+    display: flex;
+    justify-content: center; /* 居中所有元素 */
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
 .calendar-title-info {
-    text-align: center;
+    /* 确保月份标题在导航中占据空间 */
     font-size: 1.2em;
     font-weight: bold;
-    margin-bottom: 15px;
     color: #333;
+    min-width: 150px; /* 确保标题有足够的空间显示完整月份 */
+    text-align: center;
 }
+
+#prevMonthBtn, #nextMonthBtn {
+    padding: 5px 10px;
+    font-size: 1.2em;
+}
+
+#todayBtn {
+    padding: 5px 10px;
+    background-color: #ff4081; /* 粉色调 */
+    color: white;
+    border: none;
+    margin-left: 15px; /* 稍微与切换按钮分开 */
+}
+
+#todayBtn:hover {
+    background-color: #c51162;
+}
+/* ======================== */
+
 
 /* 日历网格 */
 #calendar {
@@ -179,7 +208,6 @@ button:hover {
     position: absolute;
     top: 50%;
     left: 50%;
-    /* 容器居中 */
     transform: translate(-50%, -50%); 
     display: flex;
     align-items: center;
@@ -189,13 +217,12 @@ button:hover {
     width: 15px; 
     height: 15px;
     border-radius: 50%;
-    position: absolute; /* 使标记可以互相堆叠 */
+    position: absolute; 
     box-shadow: 0 0 5px rgba(0,0,0,0.3);
     border: 1px solid white;
 }
 
 .task-count {
-    /* 显示任务数量的文本，放在标记右侧 */
     margin-left: 20px; 
     font-size: 0.8em;
     color: #555;
