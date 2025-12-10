@@ -3,13 +3,17 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Simple Deadline Tracker</title>
+    <title>Deadline Tracker</title>
     <link rel="stylesheet" href="style.css" />
 </head>
 
 <body>
-    <div class="container">
-        <h1>Deadline Tracker</h1>
+<div class="layout">
+
+    <!-- 左侧栏 -->
+    <div class="left-panel">
+
+        <h1 class="title">Deadline Tracker</h1>
 
         <div class="input-section">
             <input type="text" id="taskName" placeholder="Task name..." />
@@ -17,9 +21,17 @@
             <button id="addTaskBtn">Add Task</button>
         </div>
 
-        <ul id="taskList"></ul>
+        <ul id="taskList" class="scroll-area"></ul>
     </div>
 
-    <script src="script.js"></script>
+    <!-- 右侧日历 -->
+    <div class="right-panel">
+        <h2 class="calendar-title">Calendar</h2>
+        <div id="calendar"></div>
+    </div>
+
+</div>
+
+<script src="script.js"></script>
 </body>
 </html>
