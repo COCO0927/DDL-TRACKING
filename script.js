@@ -65,3 +65,50 @@ function saveTasks() {
 addTaskBtn.addEventListener("click", addTask);
 
 renderTasks();
+
+// ======== CALENDAR RENDERING ========
+
+function renderCalendar() {
+    const calendar = document.getElementById("calendar");
+    calendar.innerHTML = "";
+
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = now.getMonth();
+
+    // 本月第一天
+    const firstDay = new Date(year, month, 1).getDay(); 
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+    // 空白填充
+    for (let i = 0; i < firstDay; i++) {
+        const empty = document.createElement("div");
+        calendar.appendChild(empty);
+    }
+
+    // 日期格子
+    for (let day = 1; day <= daysInMonth; day++) {
+        const cell = document.createElement("div");
+        cell.className = "calendar-day";
+        cell.innerText = day;
+
+        // 如果这天有任务 → 显示红点
+        const hasTask = taskList.some(t => t.date.endsWith(-${String(day).padStart(2, "0")}));
+        if (hasTask) {
+            const dot = document.createElement("div");
+            dot.className = "task-dot";
+            cell.appendChild(dot);
+        }
+
+        calendar.appendChild(cell);
+    }
+}
+
+renderCalendar();
+
+// 在任务变动时刷新日历
+function saveTasks() {
+    localStorage.setItem("tasks", JSON.stringify(taskList));
+    renderTasks();
+    renderCalendar();
+}
