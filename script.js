@@ -1,14 +1,11 @@
 // ====== 全局任务列表 ======
-// 初始化时尝试从 localStorage 加载任务列表
 let taskList = JSON.parse(localStorage.getItem("tasks") || "[]");
 
 // ====== 初始化 ======
 document.addEventListener("DOMContentLoaded", () => {
-    // 确保在 DOM 加载完成后执行渲染和事件监听
     renderTasks();
     renderCalendar();
 
-    // 绑定添加任务按钮的点击事件
     document.getElementById("addTaskBtn").addEventListener("click", addTask);
 });
 
@@ -16,32 +13,45 @@ document.addEventListener("DOMContentLoaded", () => {
 function addTask() {
     const name = document.getElementById("taskName").value;
     const date = document.getElementById("taskDate").value;
+    const color = document.getElementById("taskColor").value; // 获取颜色
 
     if (!name || !date) {
         alert("Please enter both task name and deadline date.");
         return;
     }
 
-    // 将新任务添加到列表
-    taskList.push({ name, date, completed: false });
-    
-    // 保存并重新渲染列表和日历
+    // 将颜色添加到任务对象中
+    taskList.push({ name, date, color, completed: false });
     saveTasks();
 
-    // 清空输入框
+    // 清空输入框，保留颜色
     document.getElementById("taskName").value = "";
     document.getElementById("taskDate").value = "";
 }
 
 // ====== 保存并重新渲染 ======
 function saveTasks() {
-    // 保存到本地存储
     localStorage.setItem("tasks", JSON.stringify(taskList));
-    // 重新渲染左侧列表
     renderTasks();
-    // 重新渲染日历
     renderCalendar();
 }
+
+// ====== 计算剩余天数 ======
+function calculateDaysLeft(deadlineDate) {
+    const today = new Date();
+    // 确保日期对象只包含 YYYY-MM-DD，并将其时间设置为午夜，防止时区影响计算
+    const deadline = new Date(deadlineDate);
+    deadline.setHours(0, 0, 0, 0); 
+    today.setHours(0, 0, 0, 0);
+
+    const diffTime = deadline - today;
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    if (diffDays === 0) return "Today!";
+    if (diffDays < 0) return `${Math.abs(diffDays)} days ago (Expired)`;
+    return `${diffDays} days left`;
+}
+
 
 // ====== 渲染左侧任务列表 ======
 function renderTasks() {
@@ -51,11 +61,16 @@ function renderTasks() {
     taskList.forEach((task, index) => {
         const li = document.createElement("li");
         li.className = "task-item";
+        
+        // 使用任务的颜色设置边框
+        li.style.borderLeft = `5px solid ${task.color}`;
 
-        // 任务内容的 HTML 结构，包含删除按钮
+        const daysLeft = calculateDaysLeft(task.date);
+
         li.innerHTML = `
             <span class="${task.completed ? "completed" : ""}">
                 ${task.name} — ${task.date}
+                <br><small>Deadline: **${daysLeft}**</small>
             </span>
             <button onclick="deleteTask(${index})">X</button>
         `;
@@ -65,29 +80,36 @@ function renderTasks() {
 
 // ====== 删除任务 ======
 function deleteTask(i) {
-    // 从列表中删除指定索引的任务
     taskList.splice(i, 1);
-    // 保存并重新渲染
     saveTasks();
 }
 
 // ====== 渲染日历 ======
 function renderCalendar() {
     const calendarContainer = document.getElementById("calendar");
+    const monthTitleElement = document.getElementById("monthTitle");
+    
     calendarContainer.innerHTML = ""; // 清空日历内容
 
-    // 获取当前月份信息
     const now = new Date();
     const year = now.getFullYear();
-    const month = now.getMonth(); // JS月份从 0 开始 (0=一月)
+    const month = now.getMonth(); 
+    
+    // 获取今天的日期 (用于高亮)
+    const today = now.getDate();
+    const currentMonth = now.getMonth();
+    const currentYear = now.getFullYear();
 
-    // 获取本月第一天是星期几 (0=周日, 1=周一, ...)
+    // 更新月份标题
+    const monthNames = ["January", "February", "March", "April", "May", "June",
+                        "July", "August", "September", "October", "November", "December"];
+    monthTitleElement.innerText = `${monthNames[month]} ${year}`;
+
+
     const firstDayOfWeek = new Date(year, month, 1).getDay();
-    // 获取本月总天数
     const daysInMonth = new Date(year, month + 1, 0).getDate();
 
-    // 为了让日历从周一开始，计算偏移量
-    // 如果 firstDayOfWeek 是 0 (周日)，偏移量为 6；否则为 firstDayOfWeek - 1
+    // 周一到周日对齐的偏移量
     const offset = (firstDayOfWeek === 0 ? 6 : firstDayOfWeek - 1);
 
     // 1. 添加星期的头部（周一到周日）
@@ -111,25 +133,33 @@ function renderCalendar() {
         const cell = document.createElement("div");
         cell.className = "calendar-day";
         cell.innerText = day;
+        
+        // 高亮今天 (粉色)
+        if (day === today && month === currentMonth && year === currentYear) {
+            cell.classList.add('today-highlight');
+        }
 
-        // 【关键修复点】：安全解析任务日期，避免时区问题
-        const hasTask = taskList.some(task => {
-            const dateParts = task.date.split('-'); // 任务日期格式 YYYY-MM-DD
+        // 检查当天是否有任务，并找出任务颜色
+        const tasksOnDay = taskList.filter(task => {
+            const dateParts = task.date.split('-'); 
             if (dateParts.length === 3) {
                 const taskYear = parseInt(dateParts[0]);
-                const taskMonth = parseInt(dateParts[1]) - 1; // 转换为 JS 0-11 月份
+                const taskMonth = parseInt(dateParts[1]) - 1; 
                 const taskDay = parseInt(dateParts[2]);
 
-                // 比较任务的年、月、日是否与当前日历单元格匹配
                 return taskYear === year && taskMonth === month && taskDay === day;
             }
             return false;
         });
 
-        if (hasTask) {
-            // 如果当天有任务，添加红点
+        if (tasksOnDay.length > 0) {
+            // 只取第一个任务的颜色作为标记颜色
+            const markerColor = tasksOnDay[0].color;
+            
             const dot = document.createElement("div");
-            dot.className = "task-dot";
+            dot.className = "task-marker"; // 样式已改为更居中、更大的标记
+            dot.style.backgroundColor = markerColor; // 使用任务的颜色
+            
             cell.appendChild(dot);
         }
 
