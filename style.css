@@ -32,16 +32,15 @@ body {
     display: flex;
     gap: 8px;
     margin-bottom: 15px;
-    align-items: center; /* 对齐输入框和按钮 */
+    align-items: center; 
 }
 
 .input-section input[type="text"], 
 .input-section input[type="date"] {
     padding: 10px;
-    flex-grow: 1; /* 允许文本和日期输入框伸展 */
+    flex-grow: 1; 
 }
 
-/* 颜色选择器固定大小 */
 .input-section input[type="color"] {
     width: 30px; 
     height: 30px;
@@ -53,6 +52,13 @@ body {
 button {
     padding: 10px;
     cursor: pointer;
+    border: 1px solid #ccc;
+    background-color: #f0f0f0;
+    border-radius: 4px;
+}
+
+button:hover {
+    background-color: #e0e0e0;
 }
 
 /* 列表滚动区域 */
@@ -72,10 +78,14 @@ button {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    
-    /* 任务颜色边框 */
     border-left: 5px solid #ccc; 
-    transition: border-left 0.3s ease;
+    transition: all 0.3s ease;
+}
+
+/* 任务操作按钮容器 */
+.task-actions {
+    display: flex;
+    gap: 5px;
 }
 
 /* 倒计时小字体 */
@@ -85,6 +95,18 @@ button {
     color: #666;
     font-size: 0.85em;
 }
+
+/* ====== 过期任务高亮 ====== */
+.task-item.overdue {
+    background-color: #ffeeee; /* 浅红色背景 */
+    border-left-color: #d32f2f !important; /* 深红色边框 */
+    color: #a00; /* 红色字体 */
+}
+
+.task-item.overdue small {
+    color: #a00; 
+}
+
 
 /* 完成任务样式 */
 .completed {
@@ -116,7 +138,6 @@ button {
 /* 日历网格 */
 #calendar {
     display: grid;
-    /* 头部和日期格子都需要占据 7 列 */
     grid-template-columns: repeat(7, 1fr); 
     gap: 6px;
     background: white;
@@ -147,21 +168,37 @@ button {
 
 /* 今天的高亮样式 (粉色) */
 .today-highlight {
-    background-color: #ffebee; /* 浅粉色背景 */
-    border: 2px solid #ff4081; /* 亮粉色边框 */
+    background-color: #ffebee; 
+    border: 2px solid #ff4081; 
     color: #ff4081;
     box-shadow: 0 0 8px rgba(255, 64, 129, 0.3);
 }
 
-/* 任务标记 (取代了原来的红点) */
-.task-marker {
-    /* 放大并居中 */
+/* ====== 日历多任务堆叠标记 ====== */
+.task-markers-container {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    /* 容器居中 */
+    transform: translate(-50%, -50%); 
+    display: flex;
+    align-items: center;
+}
+
+.task-marker-stacked {
     width: 15px; 
     height: 15px;
     border-radius: 50%;
-    position: absolute;
-    top: 50%; /* 垂直居中 */
-    left: 50%; /* 水平居中 */
-    transform: translate(-50%, -50%); /* 精确定位到中心 */
+    position: absolute; /* 使标记可以互相堆叠 */
     box-shadow: 0 0 5px rgba(0,0,0,0.3);
+    border: 1px solid white;
+}
+
+.task-count {
+    /* 显示任务数量的文本，放在标记右侧 */
+    margin-left: 20px; 
+    font-size: 0.8em;
+    color: #555;
+    font-weight: normal;
+    padding-left: 5px;
 }
