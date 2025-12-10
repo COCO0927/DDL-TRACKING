@@ -1,73 +1,64 @@
-let taskList = JSON.parse(localStorage.getItem("tasks")) || [];
+// ====== 全局任务列表 ======
+let taskList = JSON.parse(localStorage.getItem("tasks") || "[]");
 
-const taskListElement = document.getElementById("taskList");
-const addTaskBtn = document.getElementById("addTaskBtn");
+// ====== 初始化 ======
+document.addEventListener("DOMContentLoaded", () => {
+    renderTasks();
+    renderCalendar();
 
-function renderTasks() {
-    taskListElement.innerHTML = "";
+    document.getElementById("addTaskBtn").addEventListener("click", addTask);
+});
 
-    taskList.forEach((task, index) => {
-        const li = document.createElement("li");
-        li.className = "task-item";
-
-        if (task.completed) li.classList.add("completed");
-
-        li.innerHTML = `
-            <span>${task.name} — <small>${task.date}</small></span>
-            <div>
-                <button onclick="toggleTask(${index})">Done</button>
-                <button onclick="deleteTask(${index})">Delete</button>
-            </div>
-        `;
-
-        taskListElement.appendChild(li);
-    });
-}
-
+// ====== 添加任务 ======
 function addTask() {
     const name = document.getElementById("taskName").value;
     const date = document.getElementById("taskDate").value;
 
-    if (name.trim() === "" || date === "") {
-        alert("Please enter a task name and date.");
+    if (!name || !date) {
+        alert("Please enter both name and date.");
         return;
     }
 
-    taskList.push({
-        name,
-        date,
-        completed: false,
-    });
-
+    taskList.push({ name, date, completed: false });
     saveTasks();
-    renderTasks();
 
     document.getElementById("taskName").value = "";
     document.getElementById("taskDate").value = "";
 }
 
-function toggleTask(index) {
-    taskList[index].completed = !taskList[index].completed;
-    saveTasks();
-    renderTasks();
-}
-
-function deleteTask(index) {
-    taskList.splice(index, 1);
-    saveTasks();
-    renderTasks();
-}
-
+// ====== 保存并重新渲染 ======
 function saveTasks() {
     localStorage.setItem("tasks", JSON.stringify(taskList));
+    renderTasks();
+    renderCalendar();
 }
 
-addTaskBtn.addEventListener("click", addTask);
+// ====== 渲染左侧任务列表 ======
+function renderTasks() {
+    const list = document.getElementById("taskList");
+    list.innerHTML = "";
 
-renderTasks();
+    taskList.forEach((task, index) => {
+        const li = document.createElement("li");
+        li.className = "task-item";
 
-// ======== CALENDAR RENDERING ========
+        li.innerHTML = `
+            <span class="${task.completed ? "completed" : ""}">
+                ${task.name} — ${task.date}
+            </span>
+            <button onclick="deleteTask(${index})">X</button>
+        `;
+        list.appendChild(li);
+    });
+}
 
+// ====== 删除任务 ======
+function deleteTask(i) {
+    taskList.splice(i, 1);
+    saveTasks();
+}
+
+// ====== 渲染日历 ======
 function renderCalendar() {
     const calendar = document.getElementById("calendar");
     calendar.innerHTML = "";
@@ -76,12 +67,15 @@ function renderCalendar() {
     const year = now.getFullYear();
     const month = now.getMonth();
 
-    // 本月第一天
-    const firstDay = new Date(year, month, 1).getDay(); 
+    // 本月第一天星期几（0=周日）
+    const firstDay = new Date(year, month, 1).getDay();
     const daysInMonth = new Date(year, month + 1, 0).getDate();
 
-    // 空白填充
-    for (let i = 0; i < firstDay; i++) {
+    // 为了让周一起始，我们重新调整
+    const offset = (firstDay === 0 ? 6 : firstDay - 1);
+
+    // 空格子
+    for (let i = 0; i < offset; i++) {
         const empty = document.createElement("div");
         calendar.appendChild(empty);
     }
@@ -92,8 +86,12 @@ function renderCalendar() {
         cell.className = "calendar-day";
         cell.innerText = day;
 
-        // 如果这天有任务 → 显示红点
-        const hasTask = taskList.some(t => t.date.endsWith(-${String(day).padStart(2, "0")}));
+        // 如果任务日期是此日期 → 显示红点
+        const hasTask = taskList.some(task => {
+            const d = new Date(task.date);
+            return d.getFullYear() === year && d.getMonth() === month && d.getDate() === day;
+        });
+
         if (hasTask) {
             const dot = document.createElement("div");
             dot.className = "task-dot";
@@ -102,13 +100,4 @@ function renderCalendar() {
 
         calendar.appendChild(cell);
     }
-}
-
-renderCalendar();
-
-// 在任务变动时刷新日历
-function saveTasks() {
-    localStorage.setItem("tasks", JSON.stringify(taskList));
-    renderTasks();
-    renderCalendar();
 }
